@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
+import conversationReducer from './conversationSlice';
 
 // Placeholder reducer
 const placeholderReducer = (state = {}, action: any) => state;
@@ -7,6 +8,7 @@ const placeholderReducer = (state = {}, action: any) => state;
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    conversations: conversationReducer,
     placeholder: placeholderReducer,
   },
   middleware: (getDefaultMiddleware) =>

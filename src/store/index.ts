@@ -1,15 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
-
-// 必要に応じてスライスをインポート
-// import someReducer from './slices/someSlice';
+import authReducer from './authSlice';
 
 // Placeholder reducer
 const placeholderReducer = (state = {}, action: any) => state;
 
 export const store = configureStore({
   reducer: {
-    // 必要に応じてリデューサーを追加
-    // some: someReducer,
+    auth: authReducer,
     placeholder: placeholderReducer,
   },
   middleware: (getDefaultMiddleware) =>
@@ -18,5 +15,7 @@ export const store = configureStore({
     }),
 });
 
+// RootState型をエクスポートして、アプリケーション全体で型安全にアクセスできるようにする
 export type RootState = ReturnType<typeof store.getState>;
+// AppDispatch型をエクスポートして、型安全なディスパッチを可能にする
 export type AppDispatch = typeof store.dispatch;

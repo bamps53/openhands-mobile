@@ -1,19 +1,19 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { ThemeProvider, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router'; 
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { Provider as ReduxProvider, useSelector } from 'react-redux';
 import { RootState, store } from '../src/store';
-
+import { theme as appTheme } from '../src/theme/theme'; 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 function AppInitializerAndNavigator() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme(); 
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -25,6 +25,8 @@ function AppInitializerAndNavigator() {
       SplashScreen.hideAsync();
       if (!isConnected) {
         router.replace('/server-connection');
+      } else {
+        router.replace({ pathname: '/(tabs)' } as any); 
       }
     }
   }, [loaded, isConnected, router]);
@@ -33,11 +35,35 @@ function AppInitializerAndNavigator() {
     return null;
   }
 
+  const navigationTheme = {
+    ...DefaultTheme, 
+    dark: colorScheme === 'dark', 
+    colors: {
+      ...DefaultTheme.colors, 
+      primary: appTheme.colors.primary,
+      background: appTheme.colors.background,
+      card: appTheme.colors.card,
+      text: appTheme.colors.text,
+      border: appTheme.colors.border,
+      notification: appTheme.colors.accent, 
+    },
+  };
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="server-connection" options={{ title: 'Connect to Server' }} />
+    <ThemeProvider value={navigationTheme}>
+      <Stack screenOptions={{ 
+        headerStyle: { backgroundColor: navigationTheme.colors.card }, 
+        headerTintColor: navigationTheme.colors.text, 
+      }}>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen 
+          name="server-connection" 
+          options={{ 
+            title: 'サーバー接続', 
+            headerShown: false, 
+          }} 
+        />
+        <Stack.Screen name="settings" options={{ title: '設定', presentation: 'modal' }} />
         <Stack.Screen name="+not-found" />
       </Stack>
     </ThemeProvider>

@@ -127,13 +127,14 @@ const ServerConnectionScreen = ({ navigation }: any) => {
             <Text style={styles.logo}>OpenHands</Text>
           </View>
           
-          <Text style={styles.title}>Server Connection</Text>
+          <Text style={styles.title}>Connect to your OpenHands Server</Text>
           
           <View style={styles.formContainer}>
             <Text style={styles.label}>Server URL</Text>
             <TextInput
               style={styles.input}
               placeholder="http://localhost:3000"
+              placeholderTextColor={theme.colors.textSecondary}
               value={serverUrlInput}
               onChangeText={setServerUrlInput}
               autoCapitalize="none"
@@ -193,13 +194,13 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xl,
   },
   logo: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
     color: theme.colors.primary,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: theme.typography.h1.fontSize,
+    fontWeight: theme.typography.h1.fontWeight,
     textAlign: 'center',
     marginBottom: theme.spacing.xl,
     color: theme.colors.text,
@@ -209,18 +210,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.m, 
   },
   label: {
-    fontSize: 16,
+    fontSize: theme.typography.smallText.fontSize,
+    fontWeight: theme.typography.smallText.fontWeight,
     marginBottom: theme.spacing.s,
     color: theme.colors.textSecondary,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: theme.colors.border,
     borderRadius: theme.roundness,
     padding: theme.spacing.m,
-    fontSize: 16,
+    fontSize: theme.typography.body.fontSize,
     marginBottom: theme.spacing.l,
     backgroundColor: theme.colors.backgroundLight,
+    color: theme.colors.text,
   },
   button: {
     backgroundColor: theme.colors.primary,
@@ -231,8 +234,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.l,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 18,
+    color: '#FFFFFF',
+    fontSize: theme.typography.h3.fontSize,
     fontWeight: 'bold',
   },
   statusContainer: {
@@ -242,14 +245,14 @@ const styles = StyleSheet.create({
     borderRadius: theme.roundness,
   },
   statusLabel: {
-    fontSize: 16,
+    fontSize: theme.typography.body.fontSize,
     fontWeight: 'bold',
     marginBottom: theme.spacing.s,
     color: theme.colors.text,
   },
   errorText: {
     color: theme.colors.error,
-    fontSize: 16,
+    fontSize: theme.typography.body.fontSize,
   },
 });
 

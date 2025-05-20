@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, StyleSheet, Platform, KeyboardAvoidingView, FlatList } from 'react-native';
 import { TextInput, Button, List, PaperProvider, MD3Theme, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -14,6 +14,7 @@ const ChatScreen = () => {
   const theme = useTheme<MD3Theme>();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
+  const flatListRef = useRef<FlatList<Message>>(null);
 
   const handleSendMessage = () => {
     if (inputText.trim() === '') return;
@@ -40,46 +41,66 @@ const ChatScreen = () => {
     }, 1000);
   };
 
+  useEffect(() => {
+    if (flatListRef.current && messages.length > 0) {
+      flatListRef.current.scrollToEnd({ animated: true });
+    }
+  }, [messages]);
+
+  const renderMessageItem = ({ item }: { item: Message }) => (
+    <List.Item
+      key={item.id}
+      title={item.text}
+      description={`${item.sender} - ${item.timestamp.toLocaleTimeString()}`}
+      style={[
+        styles.messageItem,
+        item.sender === 'user' ? styles.userMessage : styles.botMessage,
+        {
+          backgroundColor: item.sender === 'user' ? theme.colors.primaryContainer : theme.colors.surfaceVariant,
+        }
+      ]}
+      titleStyle={{
+        color: item.sender === 'user' ? theme.colors.onPrimaryContainer : theme.colors.onSurfaceVariant,
+      }}
+      descriptionStyle={{
+        color: item.sender === 'user' ? theme.colors.onPrimaryContainer : theme.colors.onSurfaceVariant,
+        fontSize: 10,
+      }}
+    />
+  );
+
   return (
     <PaperProvider theme={theme}>
       <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <View style={styles.messageContainer}>
-          <List.Section style={styles.messageList}>
-            {messages.map(msg => (
-              <List.Item
-                key={msg.id}
-                title={msg.text}
-                description={`${msg.sender} - ${msg.timestamp.toLocaleTimeString()}`}
-                style={[
-                  styles.messageItem,
-                  msg.sender === 'user' ? styles.userMessage : styles.botMessage,
-                  {
-                    backgroundColor: msg.sender === 'user' ? theme.colors.primaryContainer : theme.colors.surfaceVariant,
-                  }
-                ]}
-                titleStyle={{
-                  color: msg.sender === 'user' ? theme.colors.onPrimaryContainer : theme.colors.onSurfaceVariant,
-                }}
-                descriptionStyle={{
-                  color: msg.sender === 'user' ? theme.colors.onPrimaryContainer : theme.colors.onSurfaceVariant,
-                  fontSize: 10,
-                }}
-              />
-            ))}
-          </List.Section>
-        </View>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.textInput}
-            value={inputText}
-            onChangeText={setInputText}
-            placeholder="Type your message..."
-            mode="outlined"
-          />
-          <Button mode="contained" onPress={handleSendMessage} style={styles.sendButton}>
-            Send
-          </Button>
-        </View>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 100}
+        >
+          <View style={styles.messageContainer}>
+            <FlatList
+              ref={flatListRef}
+              data={messages}
+              renderItem={renderMessageItem}
+              keyExtractor={item => item.id}
+              style={styles.messageList}
+              contentContainerStyle={{ paddingBottom: 10 }}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.textInput}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder="Type your message..."
+              mode="outlined"
+              onSubmitEditing={handleSendMessage}
+            />
+            <Button mode="contained" onPress={handleSendMessage} style={styles.sendButton}>
+              Send
+            </Button>
+          </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </PaperProvider>
   );

@@ -56,10 +56,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       {isConnected && serverUrl ? (
-        <View style={styles.statusContainer}>
-          <Text style={styles.statusText}>接続済み</Text>
-          <Text style={styles.statusUrlText}>{serverUrl}</Text>
-        </View>
+        null
       ) : (
         <Text style={styles.title}>Welcome to OpenHands Mobile</Text>
       )}
@@ -89,25 +86,6 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 15,
-  },
-  statusContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-    padding: 10,
-    backgroundColor: '#e0f7fa',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#b2ebf2',
-  },
-  statusText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#00796b',
-  },
-  statusUrlText: {
-    fontSize: 14,
-    color: '#004d40',
-    marginTop: 4,
   },
   loader: {
     marginTop: 20,

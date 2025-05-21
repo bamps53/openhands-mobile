@@ -31,12 +31,12 @@ export default function HomeScreen() {
     workspace.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleWorkspacePress = (workspaceId: string) => {
-    router.push(`/chat?workspaceId=${workspaceId}`);
+  const handleWorkspacePress = (workspaceId: string, workspaceName: string) => {
+    router.push(`/chat?workspaceId=${workspaceId}&workspaceName=${encodeURIComponent(workspaceName)}`);
   };
 
   const renderWorkspaceItem = ({ item }: { item: Conversation }) => (
-    <TouchableOpacity style={styles.workspaceCard} onPress={() => handleWorkspacePress(item.conversation_id)}>
+    <TouchableOpacity style={styles.workspaceCard} onPress={() => handleWorkspacePress(item.conversation_id, item.title)}>
       <Text style={styles.workspaceTitle}>{item.title}</Text>
       <Text style={styles.workspaceTimestamp}>最終更新: {new Date(item.last_updated_at).toLocaleString()}</Text>
     </TouchableOpacity>

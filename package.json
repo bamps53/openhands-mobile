@@ -18,6 +18,8 @@
     "@react-navigation/native": "^7.1.9",
     "@react-navigation/native-stack": "^7.3.13",
     "@reduxjs/toolkit": "^2.8.2",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/xterm": "^5.5.0",
     "axios": "^1.9.0",
     "expo": "~53.0.9",
     "expo-blur": "~14.1.4",
@@ -43,7 +45,7 @@
     "react-native-screens": "~4.10.0",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.20.0",
-    "react-native-webview": "13.13.5",
+    "react-native-webview": "^13.13.5",
     "react-redux": "^9.2.0"
   },
   "devDependencies": {

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.css" />
+    <style>
+        html, body, #terminal-container {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #1e1e1e; /* Default background, can be configured */
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.js"></script>
+    
+    <script>
+        const terminalContainer = document.getElementById('terminal-container');
+        const term = new Terminal({
+            cursorBlink: true,
+            fontFamily: 'monospace',
+            fontSize: 14,
+            theme: {
+                background: '#1e1e1e',
+                foreground: '#cccccc',
+                cursor: '#cccccc',
+            }
+        });
+        const fitAddon = new FitAddon.FitAddon();
+        term.loadAddon(fitAddon);
+        term.open(terminalContainer);
+        fitAddon.fit();
+
+        // Communication with React Native
+        // RN -> WebView
+        window.addEventListener('message', event => {
+            const { command } = JSON.parse(event.data);
+            if (command) {
+                // Echo command back for now, or process and write output
+                term.write('\r\n$ ' + command + '\r\n');
+                // Mock command processing (can be expanded)
+                if (command.trim().toLowerCase() === 'hello') {
+                    term.write('Hello from xterm.js in WebView!\r\n');
+                } else {
+                    term.write('Unknown command: ' + command + '\r\n');
+                }
+            }
+        });
+
+        // WebView -> RN (example: sending output back)
+        // term.onData(data => {
+        //     if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+        //         window.ReactNativeWebView.postMessage(JSON.stringify({ output: data }));
+        //     }
+        // });
+
+        term.write('Welcome to xterm.js in OpenHands Mobile App!\r\n');
+        term.write('$ ');
+
+        // Adjust size on window resize
+        window.addEventListener('resize', () => {
+            fitAddon.fit();
+        });
+    </script>
+</body>
+</html>

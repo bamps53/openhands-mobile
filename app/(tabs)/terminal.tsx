@@ -8,6 +8,8 @@ import {
   Text as RNText, // react-native Text for output lines
 } from 'react-native';
 import { Text, useTheme, MD3Theme, IconButton, TextInput } from 'react-native-paper';
+import axios from 'axios'; // Import axios for error type checking
+import { executeCommand } from '../../src/api/client';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface OutputLine {
@@ -32,12 +34,12 @@ export default function TerminalScreen() {
 
   useEffect(() => {
     setOutputLines([
-      { id: `sys-${Date.now()}`, text: 'OpenHands Mobile Terminal Connected.', type: 'system' },
-      { id: `sys-${Date.now()+1}`, text: 'Type "help" for a list of available mock commands.', type: 'system' },
+      { id: `sys-${Date.now()}`, text: 'OpenHands Remote Terminal Connected.', type: 'system' },
+      { id: `sys-${Date.now()+1}`, text: 'Enter commands to execute on the remote server.', type: 'system' },
     ]);
   }, []);
 
-  const handleSendCommand = () => {
+  const handleSendCommand = async () => { // Make the function async
     if (currentCommand.trim() === '') return;
 
     const commandToSend = currentCommand;
@@ -50,44 +52,66 @@ export default function TerminalScreen() {
     setOutputLines(prevLines => [...prevLines, newCommandOutput]);
     setCurrentCommand('');
 
+    // Client-side 'clear'
+    if (commandToSend.toLowerCase().trim() === 'clear') {
+      setOutputLines([
+        { id: `sys-${Date.now()}`, text: 'Terminal cleared.', type: 'system' }
+      ]);
+      return;
+    }
+
+    // Client-side "help" message (Option A)
+    if (commandToSend.toLowerCase().trim() === 'help') {
+      const helpMessage: OutputLine = {
+        id: `sys-${Date.now()}`,
+        text: "You are connected to a remote terminal. Enter any standard shell command for the server environment. There are no specific client-side commands other than 'clear'.",
+        type: 'system',
+      };
+      setOutputLines(prevLines => [...prevLines, helpMessage]);
+      // The command "help" will still be sent to the server.
+    }
+
     let responseText: string;
     let responseType: 'response' | 'error' = 'response';
 
-    switch (commandToSend.toLowerCase().trim()) {
-      case 'help':
-        responseText = [
-          'Available mock commands:',
-          '  help          - Show this help message',
-          '  ls            - List mock files and directories',
-          '  date          - Show current date and time',
-          '  echo [text]   - Echoes back the provided text',
-          '  clear         - Clear the terminal screen',
-          '  error_test    - Simulate an error',
-        ].join('\n');
-        break;
-      case 'ls':
-        responseText = 'README.md   node_modules/   package.json   src/';
-        break;
-      case 'date':
-        responseText = new Date().toUTCString();
-        break;
-      case 'clear':
-        setOutputLines([
-            { id: `sys-${Date.now()}`, text: 'Terminal cleared.', type: 'system'}
-        ]);
-        return;
-      case 'error_test':
-        responseText = 'This is a simulated error message.';
+    try {
+      const serverResponse = await executeCommand(commandToSend);
+
+      if (serverResponse.stderr && serverResponse.stderr.trim() !== '') {
+        responseText = serverResponse.stderr;
         responseType = 'error';
-        break;
-      default:
-        if (commandToSend.toLowerCase().startsWith('echo ')) {
-            responseText = commandToSend.substring(5);
-        } else {
-            responseText = `command not found: ${commandToSend}`;
-            responseType = 'error';
+      } else if (serverResponse.stdout) {
+        responseText = serverResponse.stdout;
+        if (serverResponse.exit_code !== 0) {
+            responseType = 'error'; 
         }
-        break;
+      } else {
+        responseText = ''; // No output
+        if (serverResponse.exit_code !== 0) {
+            responseType = 'error';
+            responseText = `Command exited with code ${serverResponse.exit_code}`;
+        } else {
+            responseText = '[command executed successfully with no output]';
+        }
+      }
+
+    } catch (error: any) {
+      if (axios.isAxiosError(error)) { // Check if it's an Axios error
+        if (error.response) {
+          // Server responded with an error status code (4xx, 5xx)
+          responseText = `Server error: ${error.response.status} ${error.response.data?.message || error.response.data?.detail || error.message || 'An unexpected error occurred on the server.'}`;
+        } else if (error.request) {
+          // Request was made but no response received (e.g., network error)
+          responseText = 'Network error. Please check your connection and server address.';
+        } else {
+          // Something else happened setting up the request
+          responseText = `Error: ${error.message || 'Failed to send command to server.'}`;
+        }
+      } else {
+        // Non-Axios error
+        responseText = `Error: ${error.message || 'An unknown error occurred.'}`;
+      }
+      responseType = 'error';
     }
 
     const newResponseOutput: OutputLine = {
@@ -96,9 +120,7 @@ export default function TerminalScreen() {
       type: responseType,
     };
     
-    setTimeout(() => {
-        setOutputLines(prevLines => [...prevLines, newResponseOutput]);
-    }, 100);
+    setOutputLines(prevLines => [...prevLines, newResponseOutput]);
   };
 
   return (

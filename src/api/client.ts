@@ -112,6 +112,12 @@ interface ConversationsApiResponse {
   next_page_id: string | null;
 }
 
+export interface CommandExecutionResponse {
+  stdout: string | null;
+  stderr: string | null;
+  exit_code: number;
+}
+
 export const getConversations = async (): Promise<Conversation[]> => {
   if (!axiosInstance) {
     throw new Error('API client (axiosInstance) not initialized. Cannot fetch conversations.');
@@ -253,4 +259,43 @@ export const getApiClientConfig = (): ApiClientConfig | null => {
     };
   }
   return null;
+};
+
+export const executeCommand = async (command: string): Promise<CommandExecutionResponse> => {
+  if (!axiosInstance) {
+    throw new Error('API client (axiosInstance) not initialized. Cannot execute command.');
+  }
+  console.log(`Executing command on server: ${command} via endpoint: ${axiosInstance.defaults.baseURL}/execute-command`);
+
+  try {
+    const response = await axiosInstance.post<CommandExecutionResponse>('/execute-command', { command: command });
+    console.log('[api/client] executeCommand response status:', response.status);
+    console.log('[api/client] executeCommand response data:', JSON.stringify(response.data, null, 2));
+    
+    if (response.data && typeof response.data.exit_code === 'number') {
+        return response.data;
+    } else {
+        console.error('[api/client] executeCommand response data is not in expected format. Data:', response.data);
+        throw new Error('Unexpected response format from /execute-command endpoint.');
+    }
+
+  } catch (error: any) {
+    let errorMessage = `Error executing command "${command}" on server`;
+    if (axios.isAxiosError(error)) {
+      console.error(`[api/client] Axios error executing command "${command}":`, error.message);
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+        const serverErrorMsg = error.response.data?.message || error.response.data?.detail || error.message;
+        errorMessage = `API Error ${error.response.status}: ${serverErrorMsg}`;
+      } else if (error.request) {
+        console.error('Error request:', error.request);
+        errorMessage = 'No response received from server when executing command.';
+      }
+    } else {
+      console.error(`[api/client] Non-Axios error executing command "${command}":`, error);
+      errorMessage = error.message || 'An unknown error occurred while executing command.';
+    }
+    throw new Error(errorMessage);
+  }
 };

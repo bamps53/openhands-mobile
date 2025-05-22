@@ -24,6 +24,7 @@ export default function TerminalScreen() {
 
   const [outputLines, setOutputLines] = useState<OutputLine[]>([]);
   const [currentCommand, setCurrentCommand] = useState<string>('');
+  const commandInputRef = useRef<string>('');
   const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -37,10 +38,9 @@ export default function TerminalScreen() {
     ]);
   }, []);
 
-  const handleSendCommand = () => {
-    if (currentCommand.trim() === '') return;
-
-    const commandToSend = currentCommand;
+  const handleSendCommand = (textFromEvent?: string) => {
+    const commandToSend = (textFromEvent && textFromEvent.trim() !== '') ? textFromEvent : commandInputRef.current;
+    if (commandToSend.trim() === '') return;
     const newCommandOutput: OutputLine = {
       id: `cmd-${Date.now()}`,
       text: `${PROMPT}${commandToSend}`,
@@ -48,6 +48,7 @@ export default function TerminalScreen() {
     };
     
     setOutputLines(prevLines => [...prevLines, newCommandOutput]);
+    commandInputRef.current = '';
     setCurrentCommand('');
 
     let responseText: string;
@@ -135,11 +136,11 @@ export default function TerminalScreen() {
           <TextInput
             style={styles.textInput}
             value={currentCommand}
-            onChangeText={setCurrentCommand}
+            onChangeText={(text) => commandInputRef.current = text}
             placeholder="Type command..."
             mode="flat"
             dense
-            onSubmitEditing={handleSendCommand}
+            onSubmitEditing={(event) => handleSendCommand(event.nativeEvent.text)}
             autoCapitalize="none"
             autoCorrect={false}
             spellCheck={false}
@@ -154,7 +155,7 @@ export default function TerminalScreen() {
             size={24}
             iconColor={theme.colors.primary}
             onPress={handleSendCommand}
-            disabled={currentCommand.trim() === ''}
+            disabled={commandInputRef.current.trim() === ''}
           />
         </View>
       </KeyboardAvoidingView>
